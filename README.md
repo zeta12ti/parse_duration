@@ -22,7 +22,7 @@ assert_eq!(
 ```
 
 ## Documentation
-Documentation may be found [here](https://docs.rs/parse_duration)
+Documentation may be found [here](https://docs.rs/parse_duration).
 
 ## License
 This software is licensed under the MIT License.
