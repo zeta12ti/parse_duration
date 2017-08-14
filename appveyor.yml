@@ -84,9 +84,10 @@ environment:
 ### Branches ###
 
 # Only build for these branches
-branches:
-only:
-  - master
+-
+  branches:
+  only:
+    - master
 
 # Ignore these branches
 # except:
