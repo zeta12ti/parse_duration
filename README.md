@@ -1,7 +1,7 @@
 # parse_duration
 [![Crates.io](https://img.shields.io/crates/v/parse_duration.svg)](https://crates.io/crates/parse_duration)
 [![Travis](https://img.shields.io/travis/zeta12ti/parse_duration.svg)](https://travis-ci.org/zeta12ti/parse_duration)
-[![AppVeyor](https://img.shields.io/appveyor/ci/zeta12ti/parse_duration.svg)](https://ci.appveyor.com/project/zeta12ti/parse_duration)
+[![AppVeyor](https://img.shields.io/appveyor/ci/zeta12ti/parse-duration.svg)](https://ci.appveyor.com/project/zeta12ti/parse-duration)
 
 This crate provides a function `parse` for parsing strings into durations.
 The parser is based on the standard set by
