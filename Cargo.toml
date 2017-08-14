@@ -1,6 +1,6 @@
 [package]
 name = "parse_duration"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["zeta12ti <zeta12ti@users.noreply.github.com>"]
 homepage = "https://github.com/zeta12ti/parse_duration/"
 repository = "https://github.com/zeta12ti/parse_duration/"
@@ -8,7 +8,7 @@ documentation = "https://docs.rs/parse_duration"
 description = "Parses a duration from a string."
 readme = "README.md"
 keywords = ["duration", "date", "string", "parse"]
-categories = ["data-structures"]
+categories = ["Command-line interface", "Parsing"]
 license = "MIT"
 
 [profile.release]
