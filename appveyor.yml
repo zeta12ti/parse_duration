@@ -34,7 +34,6 @@ os: Visual Studio 2015
 # matrix entries to test different combinations of features.
 environment:
   matrix:
-
 ### MSVC Toolchains ###
 
   # Stable 64-bit MSVC
@@ -81,14 +80,28 @@ environment:
       target: i686-pc-windows-gnu
       #cargoflags: --features "unstable"
 
+
+### Branches ###
+
+# Only build for these branches
+branches:
+only:
+  - master
+
+# Ignore these branches
+# except:
+#   - /dev.*/     # You can use Regular expression to match multiple branch name(s)
+#   - playground
+
+
 ### Allowed failures ###
 
 # See Appveyor documentation for specific details. In short, place any channel or targets you wish
 # to allow build failures on (usually nightly at least is a wise choice). This will prevent a build
 # or test failure in the matching channels/targets from failing the entire build.
-matrix:
-  allow_failures:
-    - channel: nightly
+# matrix:
+#   allow_failures:
+#     - channel: nightly
 
 # If you only care about stable channel build failures, uncomment the following line:
     #- channel: beta
@@ -115,7 +128,7 @@ install:
 build: false
 
 # Uses 'cargo test' to run tests and build. Alternatively, the project may call compiled programs
-#directly or perform other testing commands. Rust will automatically be placed in the PATH
+# directly or perform other testing commands. Rust will automatically be placed in the PATH
 # environment variable.
 test_script:
   - cargo build --target %target% --verbose %cargoflags%

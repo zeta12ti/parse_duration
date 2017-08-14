@@ -6,6 +6,16 @@ language: rust
 services: docker
 sudo: required
 
+# blocklist
+# branches:
+#   except:
+#   - legacy
+#   - experimental
+
+# safelist
+branches:
+  only:
+  - master
 
 env:
   global:
