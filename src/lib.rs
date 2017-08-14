@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2017 zeta12ti
+// Copyright (c) 2017 The parse_duration Developers
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@
 //! Spaces are not needed as in `"15days20seconds100milliseconds"`.
 //! Order doesn't matter at all.
 //!
-//! Characters other than alphanumeric are ignored,
+//! Characters other than alphanumeric (actually all word characters as defined by the regex crate)
+//! are ignored,
 //! other than the fact that they act as a word boundary.
 //! So `".:++++]][][[][15[]][seconds][]:}}}}"` is the same as `"15 seconds"`.
 //!
@@ -125,11 +126,12 @@
 //! # Values
 //!
 //! The values may be an integer, a decimal, or a mantissa with an exponent.
-//! They may be as large as desired as long as the final duration is less than 2^64 seconds.
+//! They may be as large as desired as long as the final duration is less than
+//! 2<sup>64</sup> seconds.
 //!
 //! Negatives are allowed, but the negative sign must be directly adjacent to the value:
 //! `"-15 seconds"`, not `"- 15 seconds"`.
-//! When using negative values, the sum must end up non-negative, since durations are positive
+//! When using negative values, the sum must end up non-negative, since `Durations` are positive
 //! durations.
 //!
 //! Decimals are accurate up to nanosecond precision.
