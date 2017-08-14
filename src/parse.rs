@@ -22,23 +22,65 @@
 
 use regex::Regex;
 use std::time::Duration;
+use std::fmt;
+use std::error::Error;
 use num::{BigInt, ToPrimitive};
 use num::pow::pow;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 /// An enumeration of the possible errors while parsing.
 pub enum ParseError {
     /// A string failed to be parsed as an integer.
     ParseIntError(String),
     /// An unrecognized unit was found.
-    UnknownUnit(String),
+    UnknownUnitError(String),
     /// A BigInt was too big to be converted into a u64 or was negative.
-    OutOfBounds(BigInt),
+    OutOfBoundsError(BigInt),
     /// A value without a unit was found.
-    NoUnitFound(String),
-    /// A unit without a value was found.
-    NoValueFound(String),
+    NoUnitFoundError(String),
+    /// No Value at all was found.
+    NoValueFoundError(String),
+}
+
+// bring all the variants into scope
+use ParseError::{ParseIntError, UnknownUnitError, OutOfBoundsError, NoUnitFoundError,
+                 NoValueFoundError};
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ParseIntError(ref s) => {
+                write!(f, "ParseIntError: Failed to parse \"{}\" as an integer", s)
+            }
+            UnknownUnitError(ref s) => write!(f, "UnknownUnitError: \"{}\" is not a known unit", s),
+            OutOfBoundsError(ref b) => {
+                write!(f, "OutOfBoundsError: \"{}\" cannot be converted to u64", b)
+            }
+            NoUnitFoundError(ref s) => {
+                write!(f, "NoUnitFoundError: no unit found for the value \"{}\"", s)
+            }
+            NoValueFoundError(ref s) => {
+                write!(
+                    f,
+                    "NoValueFoundError: no value found in the string \"{}\"",
+                    s
+                )
+            }
+        }
+    }
+}
+
+impl Error for ParseError {
+    fn description(&self) -> &str {
+        match *self {
+            ParseIntError(_) => "Failed to parse a string into an integer",
+            UnknownUnitError(_) => "An unknown unit was used",
+            OutOfBoundsError(_) => "An integer was too large to convert into a u64",
+            NoUnitFoundError(_) => "A value without a unit was found",
+            NoValueFoundError(_) => "No value was found",
+        }
+    }
 }
 
 #[derive(Default)]
@@ -67,11 +109,12 @@ impl ProtoDuration {
         nanoseconds = nanoseconds % 1_000_000_000_u32;
 
         let seconds = <BigInt as ToPrimitive>::to_u64(&seconds).ok_or_else(|| {
-            ParseError::OutOfBounds(seconds)
+            OutOfBoundsError(seconds)
         })?;
         let nanoseconds = <BigInt as ToPrimitive>::to_u32(&nanoseconds).ok_or_else(
             || {
-                ParseError::OutOfBounds(nanoseconds)
+                // This shouldn't happen since nanoseconds is less than 1 billion.
+                OutOfBoundsError(nanoseconds)
             },
         )?;
 
@@ -159,12 +202,10 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
     if let Some(int) = NUMBER_RE.captures(input) {
         // This means it's just a value
         let seconds = BigInt::parse_bytes(int[1].as_bytes(), 10).ok_or_else(|| {
-            ParseError::ParseIntError(int[1].to_owned())
+            ParseIntError(int[1].to_owned())
         })?;
         return Ok(Duration::new(
-            seconds.to_u64().ok_or_else(
-                || ParseError::OutOfBounds(seconds),
-            )?,
+            seconds.to_u64().ok_or_else(|| OutOfBoundsError(seconds))?,
             0,
         ));
     } else if DURATION_RE.is_match(input) {
@@ -179,19 +220,18 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
             ) {
                 // capture.get(0) is *always* the actual match, so unwrapping causes no problems
                 (.., None) => {
-                    return Err(ParseError::NoUnitFound(
+                    return Err(NoUnitFoundError(
                         capture.get(0).unwrap().as_str().to_owned(),
                     ))
                 }
                 (None, ..) => {
-                    return Err(ParseError::NoValueFound(
+                    return Err(NoValueFoundError(
                         capture.get(0).unwrap().as_str().to_owned(),
                     ))
                 }
                 (Some(int), None, None, Some(unit)) => {
-                    let int =
-                        BigInt::parse_bytes(int.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(int.as_str().to_owned()))?;
+                    let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
                     match parse_unit(unit.as_str()) {
                         "nanoseconds" => duration.nanoseconds = duration.nanoseconds + int,
@@ -204,19 +244,17 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                         "weeks" => duration.weeks = duration.weeks + int,
                         "months" => duration.months = duration.months + int,
                         "years" => duration.years = duration.years + int,
-                        s => return Err(ParseError::UnknownUnit(s.to_owned())),
+                        s => return Err(UnknownUnitError(s.to_owned())),
                     }
                 }
                 (Some(int), Some(dec), None, Some(unit)) => {
-                    let int =
-                        BigInt::parse_bytes(int.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(int.as_str().to_owned()))?;
+                    let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
                     let exp = dec.as_str().len();
 
-                    let dec =
-                        BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(dec.as_str().to_owned()))?;
+                    let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(dec.as_str().to_owned()))?;
 
                     // boosted_int is value * 10^exp * unit
                     let mut boosted_int = int * pow(BigInt::from(10), exp) + dec;
@@ -233,7 +271,7 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                         "weeks" => boosted_int = 604_800_000_000_000_u64 * boosted_int,
                         "months" => boosted_int = 2_629_746_000_000_000_u64 * boosted_int,
                         "years" => boosted_int = 31_556_952_000_000_000_u64 * boosted_int,
-                        s => return Err(ParseError::UnknownUnit(s.to_owned())),
+                        s => return Err(UnknownUnitError(s.to_owned())),
                     }
 
                     // boosted_int is now value * nanoseconds (rounding down)
@@ -241,12 +279,11 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     duration.nanoseconds = duration.nanoseconds + boosted_int;
                 }
                 (Some(int), None, Some(exp), Some(unit)) => {
-                    let int =
-                        BigInt::parse_bytes(int.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(int.as_str().to_owned()))?;
+                    let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
                     let exp = exp.as_str().parse::<isize>().or_else(|_| {
-                        Err(ParseError::ParseIntError(exp.as_str().to_owned()))
+                        Err(ParseIntError(exp.as_str().to_owned()))
                     })?;
 
                     // boosted_int is value * 10^-exp * unit
@@ -264,7 +301,7 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                         "weeks" => boosted_int = 604_800_000_000_000_u64 * boosted_int,
                         "months" => boosted_int = 2_629_746_000_000_000_u64 * boosted_int,
                         "years" => boosted_int = 31_556_952_000_000_000_u64 * boosted_int,
-                        s => return Err(ParseError::UnknownUnit(s.to_owned())),
+                        s => return Err(UnknownUnitError(s.to_owned())),
                     }
 
                     // boosted_int is now value * nanoseconds
@@ -276,19 +313,17 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     duration.nanoseconds = duration.nanoseconds + boosted_int;
                 }
                 (Some(int), Some(dec), Some(exp), Some(unit)) => {
-                    let int =
-                        BigInt::parse_bytes(int.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(int.as_str().to_owned()))?;
+                    let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
                     let dec_exp = dec.as_str().len();
 
                     let exp = exp.as_str().parse::<isize>().or_else(|_| {
-                        Err(ParseError::ParseIntError(exp.as_str().to_owned()))
+                        Err(ParseIntError(exp.as_str().to_owned()))
                     })? - (dec_exp as isize);
 
-                    let dec =
-                        BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
-                            .ok_or_else(|| ParseError::ParseIntError(dec.as_str().to_owned()))?;
+                    let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
+                        .ok_or_else(|| ParseIntError(dec.as_str().to_owned()))?;
 
                     // boosted_int is value * 10^-exp * unit
                     let mut boosted_int = int * pow(BigInt::from(10), dec_exp) + dec;
@@ -305,7 +340,7 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                         "weeks" => boosted_int = 604_800_000_000_000_u64 * boosted_int,
                         "months" => boosted_int = 2_629_746_000_000_000_u64 * boosted_int,
                         "years" => boosted_int = 31_556_952_000_000_000_u64 * boosted_int,
-                        s => return Err(ParseError::UnknownUnit(s.to_owned())),
+                        s => return Err(UnknownUnitError(s.to_owned())),
                     }
 
                     // boosted_int is now value * nanoseconds (potentially rounded down)
@@ -321,6 +356,6 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
         return Ok(duration.into_duration()?);
     } else {
         // Just a unit or nothing at all
-        Err(ParseError::NoValueFound(input.to_owned()))
+        Err(NoValueFoundError(input.to_owned()))
     }
 }
