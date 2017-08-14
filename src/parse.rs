@@ -27,11 +27,17 @@ use num::pow::pow;
 
 
 #[derive(Debug)]
+/// An enumeration of the possible errors while parsing.
 pub enum ParseError {
+    /// A string failed to be parsed as an integer.
     ParseIntError(String),
+    /// An unrecognized unit was found.
     UnknownUnit(String),
+    /// A BigInt was too big to be converted into a u64 or was negative.
     OutOfBounds(BigInt),
+    /// A value without a unit was found.
     NoUnitFound(String),
+    /// A unit without a value was found.
     NoValueFound(String),
 }
 
@@ -147,6 +153,8 @@ fn parse_unit(unit: &str) -> &str {
 }
 
 /// Parse a string into a duration object.
+///
+/// See the [module level documentation](index.html) for more.
 pub fn parse(input: &str) -> Result<Duration, ParseError> {
     if let Some(int) = NUMBER_RE.captures(input) {
         // This means it's just a value
