@@ -32,6 +32,17 @@ os: Visual Studio 2015
 # and rustc, respectively. For instance, you can uncomment the cargoflags lines in the nightly
 # channels to enable unstable features when building for nightly. Or you could add additional
 # matrix entries to test different combinations of features.
+
+### Branches ###
+branches:
+  # Whitelist
+  only:
+    - master
+# Blacklist
+  # except:
+  #   - /dev.*/     # You can use Regular expression to match multiple branch name(s)
+  #   - playground
+
 environment:
   matrix:
 ### MSVC Toolchains ###
@@ -79,20 +90,6 @@ environment:
     - channel: nightly
       target: i686-pc-windows-gnu
       #cargoflags: --features "unstable"
-
-
-### Branches ###
-
-# Only build for these branches
--
-  branches:
-  only:
-    - master
-
-# Ignore these branches
-# except:
-#   - /dev.*/     # You can use Regular expression to match multiple branch name(s)
-#   - playground
 
 
 ### Allowed failures ###
