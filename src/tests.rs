@@ -24,7 +24,6 @@
 use std::time::Duration;
 use super::parse;
 
-
 macro_rules! test_parse {
     (fn $fun:ident($string: expr, $seconds: expr, $nanoseconds: expr)) => {
         #[test]
@@ -165,6 +164,7 @@ test_parse!(fn unmatched_negatives("1 day - 15 minutes", 87_300, 0));
 
 test_parse!(fn no_unit("15", 15, 0));
 // freakin IDE highlights wrong if there's certain characters in a string within a macro
+// Heck, it hightlights all the marco arguments wrong.
 test_parse!(fn no_unit_with_noise(".:++++]][][[][15[]][][]:}}}}", 15, 0));
 
 test_invalid!(fn invalid_unit("16 sdfwe"));
