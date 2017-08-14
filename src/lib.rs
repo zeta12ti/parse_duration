@@ -21,7 +21,10 @@
 // SOFTWARE.
 
 //! This crate provides a function [`parse`](fn.parse.html) for parsing strings into durations.
-//! The parser is based on the standard set by systemd.time, but extends it significantly.
+//! The parser is based on the standard set by
+//! [systemd.time]
+//! (https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans),
+//! but extends it significantly.
 //! For example, negative numbers, decimals and exponents are allowed.
 //!
 //! ```
