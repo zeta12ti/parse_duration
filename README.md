@@ -5,8 +5,8 @@
 
 This crate provides a function `parse` for parsing strings into durations.
 The parser is based on the standard set by
-[systemd.time](https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans)
-, but extends it significantly.
+[systemd.time](https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans),
+but extends it significantly.
 For example, negative numbers, decimals and exponents are allowed.
 
 ```
