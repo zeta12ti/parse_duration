@@ -1,7 +1,7 @@
 [package]
 name = "parse_duration"
-version = "1.0.1"
-authors = ["zeta12ti <zeta12ti@users.noreply.github.com>"]
+version = "1.0.2"
+authors = ["zeta12ti <zeta12ti@protonmail.com>"]
 homepage = "https://github.com/zeta12ti/parse_duration/"
 repository = "https://github.com/zeta12ti/parse_duration/"
 documentation = "https://docs.rs/parse_duration"
@@ -11,12 +11,8 @@ keywords = ["duration", "date", "string", "parse"]
 categories = ["command-line-interface", "parsing"]
 license = "MIT"
 
-[profile.release]
-lto = true
-
 [badges]
 travis-ci = { repository = "zeta12ti/parse_duration", branch = "master" }
-appveyor = { repository = "zeta12ti/parse_duration", branch = "master", service = "github" }
 
 [dependencies]
 regex = "1"
