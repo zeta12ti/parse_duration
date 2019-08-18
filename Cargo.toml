@@ -19,6 +19,6 @@ travis-ci = { repository = "zeta12ti/parse_duration", branch = "master" }
 appveyor = { repository = "zeta12ti/parse_duration", branch = "master", service = "github" }
 
 [dependencies]
-regex = "0.2"
-lazy_static = "0.2.8"
-num = "0.1.40"
+regex = "1"
+lazy_static = "1"
+num = "0.2"
