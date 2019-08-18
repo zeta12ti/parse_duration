@@ -1,69 +1,45 @@
-# Based on the "trust" template v0.1.1
-# https://github.com/japaric/trust/tree/v0.1.1
-
-dist: trusty
 language: rust
-services: docker
-sudo: required
 
-# blocklist
-# branches:
-#   except:
-#   - legacy
-#   - experimental
+rust:
+  - stable # use this for builds on other oses
+  - 1.28.0
+  - beta
+  - nightly
 
-# safelist
-branches:
-  only:
-  - master
+dist: bionic
 
-env:
-  global:
-    - CRATE_NAME=parse_duration
-
+env: TARGET=i686-unknown-linux-gnu
 
 matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
   include:
-    # Linux
-    - env: TARGET=i686-unknown-linux-gnu
-    - env: TARGET=i686-unknown-linux-musl
-    - env: TARGET=x86_64-unknown-linux-gnu
-    - env: TARGET=x86_64-unknown-linux-musl
-
-    # OSX
+    # All Tier 1 supported platforms
     - env: TARGET=i686-apple-darwin
       os: osx
     - env: TARGET=x86_64-apple-darwin
       os: osx
 
-    # *BSD
-    - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
-    - env: TARGET=x86_64-unknown-freebsd DISABLE_TESTS=1
-    - env: TARGET=x86_64-unknown-netbsd DISABLE_TESTS=1
+    - env: TARGET=i686-pc-windows-gnu
+      os: windows
+    - env: TARGET=i686-pc-windows-msvc
+      os: windows
+    - env: TARGET=x86_64-pc-windows-gnu
+      os: windows
+    - env: TARGET=x86_64-pc-windows-msvc
+      os: windows
 
-    # Other architectures
-    - env: TARGET=aarch64-unknown-linux-gnu
-    - env: TARGET=armv7-unknown-linux-gnueabihf
-    - env: TARGET=mips-unknown-linux-gnu
-    - env: TARGET=mips64-unknown-linux-gnuabi64
-    - env: TARGET=mips64el-unknown-linux-gnuabi64
-    - env: TARGET=mipsel-unknown-linux-gnu
-    - env: TARGET=powerpc-unknown-linux-gnu
-    - env: TARGET=powerpc64-unknown-linux-gnu
-    - env: TARGET=powerpc64le-unknown-linux-gnu
-    - env: TARGET=s390x-unknown-linux-gnu DISABLE_TESTS=1
-
-    # Testing other channels
+    - env: TARGET=i686-unknown-linux-gnu
+      dist: xenial
+    - env: TARGET=i686-unknown-linux-gnu
+      dist: bionic
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
-    - env: TARGET=x86_64-apple-darwin
-      os: osx
-      rust: nightly
+      dist: xenial
+    - env: TARGET=x86_64-unknown-linux-gnu
+      dist: bionic
 
 cache: cargo
-before_cache:
-  # Travis can't cache files that are not readable by "others"
-- chmod -R a+r $HOME/.cargo
 
 notifications:
   email:
