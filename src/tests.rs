@@ -20,17 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
-use std::time::Duration;
 use super::parse;
+use std::time::Duration;
 
 macro_rules! test_parse {
     (fn $fun:ident($string: expr, $seconds: expr, $nanoseconds: expr)) => {
         #[test]
         fn $fun() {
-            assert_eq!(parse($string).unwrap(), Duration::new($seconds, $nanoseconds))
+            assert_eq!(
+                parse($string).unwrap(),
+                Duration::new($seconds, $nanoseconds)
+            )
         }
-    }
+    };
 }
 
 macro_rules! test_invalid {
