@@ -20,13 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use regex::Regex;
-use std::time::Duration;
-use std::fmt;
-use std::error::Error;
-use num::{BigInt, ToPrimitive};
 use num::pow::pow;
-
+use num::{BigInt, ToPrimitive};
+use regex::Regex;
+use std::error::Error;
+use std::fmt;
+use std::time::Duration;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 /// An enumeration of the possible errors while parsing.
@@ -44,8 +43,9 @@ pub enum ParseError {
 }
 
 // bring all the variants into scope
-use ParseError::{ParseIntError, UnknownUnitError, OutOfBoundsError, NoUnitFoundError,
-                 NoValueFoundError};
+use ParseError::{
+    NoUnitFoundError, NoValueFoundError, OutOfBoundsError, ParseIntError, UnknownUnitError,
+};
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -60,13 +60,11 @@ impl fmt::Display for ParseError {
             NoUnitFoundError(ref s) => {
                 write!(f, "NoUnitFoundError: no unit found for the value \"{}\"", s)
             }
-            NoValueFoundError(ref s) => {
-                write!(
-                    f,
-                    "NoValueFoundError: no value found in the string \"{}\"",
-                    s
-                )
-            }
+            NoValueFoundError(ref s) => write!(
+                f,
+                "NoValueFoundError: no value found in the string \"{}\"",
+                s
+            ),
         }
     }
 }
@@ -99,24 +97,25 @@ struct ProtoDuration {
 
 impl ProtoDuration {
     fn into_duration(self) -> Result<Duration, ParseError> {
-        let mut nanoseconds = self.nanoseconds + 1_000_u32 * self.microseconds +
-            1_000_000_u32 * self.milliseconds;
-        let mut seconds = self.seconds + 60_u32 * self.minutes + 3_600_u32 * self.hours +
-            86_400_u32 * self.days + 604_800_u32 * self.weeks +
-            2_629_746_u32 * self.months + 31_556_952_u32 * self.years;
+        let mut nanoseconds =
+            self.nanoseconds + 1_000_u32 * self.microseconds + 1_000_000_u32 * self.milliseconds;
+        let mut seconds = self.seconds
+            + 60_u32 * self.minutes
+            + 3_600_u32 * self.hours
+            + 86_400_u32 * self.days
+            + 604_800_u32 * self.weeks
+            + 2_629_746_u32 * self.months
+            + 31_556_952_u32 * self.years;
 
         seconds = seconds + (&nanoseconds / 1_000_000_000_u32);
         nanoseconds = nanoseconds % 1_000_000_000_u32;
 
-        let seconds = <BigInt as ToPrimitive>::to_u64(&seconds).ok_or_else(|| {
-            OutOfBoundsError(seconds)
+        let seconds =
+            <BigInt as ToPrimitive>::to_u64(&seconds).ok_or_else(|| OutOfBoundsError(seconds))?;
+        let nanoseconds = <BigInt as ToPrimitive>::to_u32(&nanoseconds).ok_or_else(|| {
+            // This shouldn't happen since nanoseconds is less than 1 billion.
+            OutOfBoundsError(nanoseconds)
         })?;
-        let nanoseconds = <BigInt as ToPrimitive>::to_u32(&nanoseconds).ok_or_else(
-            || {
-                // This shouldn't happen since nanoseconds is less than 1 billion.
-                OutOfBoundsError(nanoseconds)
-            },
-        )?;
 
         Ok(Duration::new(seconds, nanoseconds))
     }
@@ -129,7 +128,9 @@ lazy_static! {
         [^\w-]*     # any non-word characters, except '-' (for negatives - may add '.' for decimals)
         (-?\d+)     # a possible negative sign and some positive number of digits
         [^\w-]*     # more non-word characters
-        $").expect("Compiling a regex went wrong");
+        $"
+    )
+    .expect("Compiling a regex went wrong");
 }
 
 lazy_static! {
@@ -147,47 +148,48 @@ lazy_static! {
             (?P<unit>[\w&&[^\d]]+)  # a word with no digits
         )?
         ",
-    ).expect("Compiling a regex went wrong");
+    )
+    .expect("Compiling a regex went wrong");
 }
 
 fn parse_unit(unit: &str) -> &str {
     let unit_casefold = unit.to_lowercase();
 
-    if unit_casefold.starts_with('n') &&
-        ("nanoseconds".starts_with(&unit_casefold) || "nsecs".starts_with(&unit_casefold))
+    if unit_casefold.starts_with('n')
+        && ("nanoseconds".starts_with(&unit_casefold) || "nsecs".starts_with(&unit_casefold))
     {
         "nanoseconds"
-    } else if unit_casefold.starts_with("mic") && "microseconds".starts_with(&unit_casefold) ||
-               unit_casefold.starts_with('u') && "usecs".starts_with(&unit_casefold) ||
-               unit_casefold.starts_with('μ') && "μsecs".starts_with(&unit_casefold)
+    } else if unit_casefold.starts_with("mic") && "microseconds".starts_with(&unit_casefold)
+        || unit_casefold.starts_with('u') && "usecs".starts_with(&unit_casefold)
+        || unit_casefold.starts_with('μ') && "μsecs".starts_with(&unit_casefold)
     {
         "microseconds"
-    } else if unit_casefold.starts_with("mil") && "milliseconds".starts_with(&unit_casefold) ||
-               unit_casefold.starts_with("ms") && "msecs".starts_with(&unit_casefold)
+    } else if unit_casefold.starts_with("mil") && "milliseconds".starts_with(&unit_casefold)
+        || unit_casefold.starts_with("ms") && "msecs".starts_with(&unit_casefold)
     {
         "milliseconds"
-    } else if unit_casefold.starts_with('s') &&
-               ("seconds".starts_with(&unit_casefold) || "secs".starts_with(&unit_casefold))
+    } else if unit_casefold.starts_with('s')
+        && ("seconds".starts_with(&unit_casefold) || "secs".starts_with(&unit_casefold))
     {
         "seconds"
-    } else if (unit_casefold.starts_with("min") || unit.starts_with('m')) &&
-               ("minutes".starts_with(&unit_casefold) || "mins".starts_with(&unit_casefold))
+    } else if (unit_casefold.starts_with("min") || unit.starts_with('m'))
+        && ("minutes".starts_with(&unit_casefold) || "mins".starts_with(&unit_casefold))
     {
         "minutes"
-    } else if unit_casefold.starts_with('h') &&
-               ("hours".starts_with(&unit_casefold) || "hrs".starts_with(&unit_casefold))
+    } else if unit_casefold.starts_with('h')
+        && ("hours".starts_with(&unit_casefold) || "hrs".starts_with(&unit_casefold))
     {
         "hours"
     } else if unit_casefold.starts_with('d') && "days".starts_with(&unit_casefold) {
         "days"
     } else if unit_casefold.starts_with('w') && "weeks".starts_with(&unit_casefold) {
         "weeks"
-    } else if (unit_casefold.starts_with("mo") || unit.starts_with('M')) &&
-               "months".starts_with(&unit_casefold)
+    } else if (unit_casefold.starts_with("mo") || unit.starts_with('M'))
+        && "months".starts_with(&unit_casefold)
     {
         "months"
-    } else if unit_casefold.starts_with('y') &&
-               ("years".starts_with(&unit_casefold) || "yrs".starts_with(&unit_casefold))
+    } else if unit_casefold.starts_with('y')
+        && ("years".starts_with(&unit_casefold) || "yrs".starts_with(&unit_casefold))
     {
         "years"
     } else {
@@ -201,9 +203,8 @@ fn parse_unit(unit: &str) -> &str {
 pub fn parse(input: &str) -> Result<Duration, ParseError> {
     if let Some(int) = NUMBER_RE.captures(input) {
         // This means it's just a value
-        let seconds = BigInt::parse_bytes(int[1].as_bytes(), 10).ok_or_else(|| {
-            ParseIntError(int[1].to_owned())
-        })?;
+        let seconds = BigInt::parse_bytes(int[1].as_bytes(), 10)
+            .ok_or_else(|| ParseIntError(int[1].to_owned()))?;
         return Ok(Duration::new(
             seconds.to_u64().ok_or_else(|| OutOfBoundsError(seconds))?,
             0,
@@ -282,9 +283,10 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
-                    let exp = exp.as_str().parse::<isize>().or_else(|_| {
-                        Err(ParseIntError(exp.as_str().to_owned()))
-                    })?;
+                    let exp = exp
+                        .as_str()
+                        .parse::<isize>()
+                        .or_else(|_| Err(ParseIntError(exp.as_str().to_owned())))?;
 
                     // boosted_int is value * 10^-exp * unit
                     let mut boosted_int = int;
@@ -318,9 +320,11 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
 
                     let dec_exp = dec.as_str().len();
 
-                    let exp = exp.as_str().parse::<isize>().or_else(|_| {
-                        Err(ParseIntError(exp.as_str().to_owned()))
-                    })? - (dec_exp as isize);
+                    let exp = exp
+                        .as_str()
+                        .parse::<isize>()
+                        .or_else(|_| Err(ParseIntError(exp.as_str().to_owned())))?
+                        - (dec_exp as isize);
 
                     let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
                         .ok_or_else(|| ParseIntError(dec.as_str().to_owned()))?;
