@@ -1,7 +1,7 @@
 language: rust
 
 rust:
-  - stable # use this for builds on other oses
+  - stable # use this for builds on other OSes
   - 1.28.0
   - beta
   - nightly
@@ -32,15 +32,12 @@ matrix:
 
     - env: TARGET=i686-unknown-linux-gnu
       dist: xenial
-    - env: TARGET=i686-unknown-linux-gnu
-      dist: bionic
+# This gets run outside the matrix
+#   - env: TARGET=i686-unknown-linux-gnu
+#     dist: bionic
     - env: TARGET=x86_64-unknown-linux-gnu
       dist: xenial
     - env: TARGET=x86_64-unknown-linux-gnu
       dist: bionic
 
 cache: cargo
-
-notifications:
-  email:
-    on_success: never
