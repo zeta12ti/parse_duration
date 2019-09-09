@@ -81,21 +81,35 @@ impl Error for ParseError {
     }
 }
 
+/// A `ProtoDuration` is a duration with arbitrarily large fields.
+/// It can be conditionally converted into a normal Duration, if the fields are small enough.
 #[derive(Default)]
 struct ProtoDuration {
+    /// The number of nanoseconds in the `ProtoDuration`. May be negative.
     nanoseconds: BigInt,
+    /// The number of microseconds in the `ProtoDuration`. May be negative.
     microseconds: BigInt,
+    /// The number of milliseconds in the `ProtoDuration`. May be negative.
     milliseconds: BigInt,
+    /// The number of seconds in the `ProtoDuration`. May be negative.
     seconds: BigInt,
+    /// The number of minutes in the `ProtoDuration`. May be negative.
     minutes: BigInt,
+    /// The number of hours in the `ProtoDuration`. May be negative.
     hours: BigInt,
+    /// The number of days in the `ProtoDuration`. May be negative.
     days: BigInt,
+    /// The number of weeks in the `ProtoDuration`. May be negative.
     weeks: BigInt,
+    /// The number of months in the `ProtoDuration`. May be negative.
     months: BigInt,
+    /// The number of years in the `ProtoDuration`. May be negative.
     years: BigInt,
 }
 
 impl ProtoDuration {
+    /// Try to convert a `ProtoDuration` into a `Duration`.
+    /// This may fail if the `ProtoDuration` is too long or it ends up having a negative total duration.
     fn into_duration(self) -> Result<Duration, ParseError> {
         let mut nanoseconds =
             self.nanoseconds + 1_000_u32 * self.microseconds + 1_000_000_u32 * self.milliseconds;
@@ -107,8 +121,8 @@ impl ProtoDuration {
             + 2_629_746_u32 * self.months
             + 31_556_952_u32 * self.years;
 
-        seconds = seconds + (&nanoseconds / 1_000_000_000_u32);
-        nanoseconds = nanoseconds % 1_000_000_000_u32;
+        seconds += &nanoseconds / 1_000_000_000_u32;
+        nanoseconds %= 1_000_000_000_u32;
 
         let seconds =
             <BigInt as ToPrimitive>::to_u64(&seconds).ok_or_else(|| OutOfBoundsError(seconds))?;
@@ -152,6 +166,8 @@ lazy_static! {
     .expect("Compiling a regex went wrong");
 }
 
+/// Convert some unit abbreviations to their full form.
+/// See the [module level documentation](index.html) for more information about which abbreviations are accepted.
 fn parse_unit(unit: &str) -> &str {
     let unit_casefold = unit.to_lowercase();
 
@@ -161,7 +177,7 @@ fn parse_unit(unit: &str) -> &str {
         "nanoseconds"
     } else if unit_casefold.starts_with("mic") && "microseconds".starts_with(&unit_casefold)
         || unit_casefold.starts_with('u') && "usecs".starts_with(&unit_casefold)
-        || unit_casefold.starts_with('μ') && "μsecs".starts_with(&unit_casefold)
+        || unit_casefold.starts_with('μ') && "\u{3bc}secs".starts_with(&unit_casefold)
     {
         "microseconds"
     } else if unit_casefold.starts_with("mil") && "milliseconds".starts_with(&unit_casefold)
@@ -203,12 +219,13 @@ fn parse_unit(unit: &str) -> &str {
 pub fn parse(input: &str) -> Result<Duration, ParseError> {
     if let Some(int) = NUMBER_RE.captures(input) {
         // This means it's just a value
-        let seconds = BigInt::parse_bytes(int[1].as_bytes(), 10)
-            .ok_or_else(|| ParseIntError(int[1].to_owned()))?;
-        return Ok(Duration::new(
+        // Since the regex matched, the first group exists, so we can unwrap.
+        let seconds = BigInt::parse_bytes(int.get(1).unwrap().as_str().as_bytes(), 10)
+            .ok_or_else(|| ParseIntError(int.get(1).unwrap().as_str().to_owned()))?;
+        Ok(Duration::new(
             seconds.to_u64().ok_or_else(|| OutOfBoundsError(seconds))?,
             0,
-        ));
+        ))
     } else if DURATION_RE.is_match(input) {
         // This means we have at least one "unit" (or plain word) and one value.
         let mut duration = ProtoDuration::default();
@@ -235,16 +252,16 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                         .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
                     match parse_unit(unit.as_str()) {
-                        "nanoseconds" => duration.nanoseconds = duration.nanoseconds + int,
-                        "microseconds" => duration.microseconds = duration.microseconds + int,
-                        "milliseconds" => duration.milliseconds = duration.milliseconds + int,
-                        "seconds" => duration.seconds = duration.seconds + int,
-                        "minutes" => duration.minutes = duration.minutes + int,
-                        "hours" => duration.hours = duration.hours + int,
-                        "days" => duration.days = duration.days + int,
-                        "weeks" => duration.weeks = duration.weeks + int,
-                        "months" => duration.months = duration.months + int,
-                        "years" => duration.years = duration.years + int,
+                        "nanoseconds" => duration.nanoseconds += int,
+                        "microseconds" => duration.microseconds += int,
+                        "milliseconds" => duration.milliseconds += int,
+                        "seconds" => duration.seconds += int,
+                        "minutes" => duration.minutes += int,
+                        "hours" => duration.hours += int,
+                        "days" => duration.days += int,
+                        "weeks" => duration.weeks += int,
+                        "months" => duration.months += int,
+                        "years" => duration.years += int,
                         s => return Err(UnknownUnitError(s.to_owned())),
                     }
                 }
@@ -276,8 +293,8 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     }
 
                     // boosted_int is now value * nanoseconds (rounding down)
-                    boosted_int = boosted_int / pow(BigInt::from(10), exp);
-                    duration.nanoseconds = duration.nanoseconds + boosted_int;
+                    boosted_int /= pow(BigInt::from(10), exp);
+                    duration.nanoseconds += boosted_int;
                 }
                 (Some(int), None, Some(exp), Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
@@ -307,17 +324,20 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     }
 
                     // boosted_int is now value * nanoseconds
+                    // the absolute value of an `isize` is always between 0 and 2**(width - 1),
+                    // so it always fits in a `usize`.
                     if exp < 0 {
-                        boosted_int = boosted_int / pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int /= pow(BigInt::from(10), exp.abs() as usize);
                     } else {
-                        boosted_int = boosted_int * pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int *= pow(BigInt::from(10), exp.abs() as usize);
                     }
-                    duration.nanoseconds = duration.nanoseconds + boosted_int;
+                    duration.nanoseconds += boosted_int;
                 }
                 (Some(int), Some(dec), Some(exp), Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| ParseIntError(int.as_str().to_owned()))?;
 
+                    // TODO: Should probably switch to BigInt for exp too
                     let dec_exp = dec.as_str().len();
 
                     let exp = exp
@@ -335,29 +355,29 @@ pub fn parse(input: &str) -> Result<Duration, ParseError> {
                     // boosted_int is now value * 10^-exp * nanoseconds
                     match parse_unit(unit.as_str()) {
                         "nanoseconds" => boosted_int = boosted_int,
-                        "microseconds" => boosted_int = 1_000_u64 * boosted_int,
-                        "milliseconds" => boosted_int = 1_000_000_u64 * boosted_int,
-                        "seconds" => boosted_int = 1_000_000_000_u64 * boosted_int,
-                        "minutes" => boosted_int = 60_000_000_000_u64 * boosted_int,
-                        "hours" => boosted_int = 3_600_000_000_000_u64 * boosted_int,
-                        "days" => boosted_int = 86_400_000_000_000_u64 * boosted_int,
-                        "weeks" => boosted_int = 604_800_000_000_000_u64 * boosted_int,
-                        "months" => boosted_int = 2_629_746_000_000_000_u64 * boosted_int,
-                        "years" => boosted_int = 31_556_952_000_000_000_u64 * boosted_int,
+                        "microseconds" => boosted_int *= 1_000_u64,
+                        "milliseconds" => boosted_int *= 1_000_000_u64,
+                        "seconds" => boosted_int *= 1_000_000_000_u64,
+                        "minutes" => boosted_int *= 60_000_000_000_u64,
+                        "hours" => boosted_int *= 3_600_000_000_000_u64,
+                        "days" => boosted_int *= 86_400_000_000_000_u64,
+                        "weeks" => boosted_int *= 604_800_000_000_000_u64,
+                        "months" => boosted_int *= 2_629_746_000_000_000_u64,
+                        "years" => boosted_int *= 31_556_952_000_000_000_u64,
                         s => return Err(UnknownUnitError(s.to_owned())),
                     }
 
                     // boosted_int is now value * nanoseconds (potentially rounded down)
                     if exp < 0 {
-                        boosted_int = boosted_int / pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int /= pow(BigInt::from(10), exp.abs() as usize);
                     } else {
-                        boosted_int = boosted_int * pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int *= pow(BigInt::from(10), exp.abs() as usize);
                     }
-                    duration.nanoseconds = duration.nanoseconds + boosted_int;
+                    duration.nanoseconds += boosted_int;
                 }
             }
         }
-        return Ok(duration.into_duration()?);
+        duration.into_duration()
     } else {
         // Just a unit or nothing at all
         Err(NoValueFoundError(input.to_owned()))
