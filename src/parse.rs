@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use lazy_static::lazy_static;
 use num::pow::pow;
 use num::{BigInt, ToPrimitive};
 use regex::Regex;
@@ -43,7 +44,7 @@ pub enum ParseError {
 }
 
 // bring all the variants into scope
-use ParseError::{
+use crate::ParseError::{
     NoUnitFoundError, NoValueFoundError, OutOfBoundsError, ParseIntError, UnknownUnitError,
 };
 

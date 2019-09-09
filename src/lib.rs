@@ -152,17 +152,12 @@
 //! );
 //! ```
 
-extern crate regex;
-#[macro_use]
-extern crate lazy_static;
-extern crate num;
-
 /// This module containing the parse function and the error struct.
 ///
 /// See the [module level documentation](index.html) for more.
 mod parse;
 
-pub use parse::{parse, ParseError};
+pub use crate::parse::{parse, ParseError};
 
 #[cfg(test)]
 mod tests;

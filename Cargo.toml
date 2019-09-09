@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["duration", "date", "string", "parse"]
 categories = ["command-line-interface", "parsing"]
 license = "MIT"
+edition = "2018"
 
 [badges]
 travis-ci = { repository = "zeta12ti/parse_duration", branch = "master" }
