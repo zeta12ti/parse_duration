@@ -22,8 +22,7 @@
 
 //! This crate provides a function [`parse`](fn.parse.html) for parsing strings into durations.
 //! The parser is based on the standard set by
-//! [systemd.time]
-//! (https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans),
+//! [systemd.time](https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans),
 //! but extends it significantly.
 //! For example, negative numbers, decimals and exponents are allowed.
 //!
@@ -158,6 +157,9 @@ extern crate regex;
 extern crate lazy_static;
 extern crate num;
 
+/// This module containing the parse function and the error struct.
+///
+/// See the [module level documentation](index.html) for more.
 mod parse;
 
 pub use parse::{parse, ParseError};
