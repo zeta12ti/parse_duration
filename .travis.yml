@@ -40,4 +40,5 @@ matrix:
     - env: TARGET=x86_64-unknown-linux-gnu
       dist: bionic
 
-cache: cargo
+# This sometimes causes crashes - not sure why
+# cache: cargo
