@@ -25,11 +25,22 @@ assert_eq!(
 );
 ```
 
+
 ## Documentation
 Documentation may be found [on docs.rs](https://docs.rs/parse_duration).
 
+
+## Minimum Rust version policy
+This crate's minimum supported rustc version is 1.28.0.
+
+The current tentative policy is that the minimum Rust version required to use this crate can be increased in minor version updates. For example, if regex 1.0 requires Rust 1.20.0, then regex 1.0.z for all values of z will also require Rust 1.20.0 or newer. However, regex 1.y for y > 0 may require a newer minimum version of Rust.
+
+In general, this crate will be conservative with respect to the minimum supported version of Rust.
+
+
 ## License
 This software is licensed under the MIT License.
+
 
 ## Contributing
 Feel free to file an issue or submit a pull request if there's a bug you want fixed
