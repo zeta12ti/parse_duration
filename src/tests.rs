@@ -20,26 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::parse;
+use super::{parse, ParseError};
+use num::BigInt;
 use std::time::Duration;
 
 macro_rules! test_parse {
     (fn $fun:ident($string: expr, $seconds: expr, $nanoseconds: expr)) => {
         #[test]
         fn $fun() {
-            assert_eq!(
-                parse($string).unwrap(),
-                Duration::new($seconds, $nanoseconds)
-            )
+            assert_eq!(parse($string), Ok(Duration::new($seconds, $nanoseconds)))
         }
     };
 }
 
 macro_rules! test_invalid {
-    (fn $fun:ident($string:expr)) => {
+    (fn $fun:ident($string: expr, $error: expr)) => {
         #[test]
         fn $fun() {
-            assert!(parse($string).is_err());
+            assert_eq!(parse($string), Err($error));
         }
     };
 }
@@ -146,7 +144,7 @@ test_parse!(fn month_exp6("1e-5 M", 26, 297_460_000));
 test_parse!(fn year1("1years", 31_556_952, 0));
 test_parse!(fn year2("1year", 31_556_952, 0));
 test_parse!(fn year3("1y", 31_556_952, 0));
-test_parse!(fn year_dec("1.07 y", 33765938, 640_000_000));
+test_parse!(fn year_dec("1.07 y", 33_765_938, 640_000_000));
 test_parse!(fn year_exp1("1.07e5 y", 3_376_593_864_000, 0));
 test_parse!(fn year_exp2("1.07e+5 y", 3_376_593_864_000, 0));
 test_parse!(fn year_exp3("1.07e-5 y", 337, 659_386_400));
@@ -156,7 +154,7 @@ test_parse!(fn year_exp6("1e-5 y", 315, 569_520_000));
 
 test_parse!(fn multi_with_space("1min    10 seconds", 70, 0));
 test_parse!(fn multi_no_space("1min10seconds", 70, 0));
-test_parse!(fn multi_out_of_order("10year1min10seconds5h", 315587590, 0));
+test_parse!(fn multi_out_of_order("10year1min10seconds5h", 315_587_590, 0));
 test_parse!(fn multi_repetition("1min 10 minute", 660, 0));
 
 test_parse!(fn multiple_units("16 min seconds", 960, 0));
@@ -165,12 +163,18 @@ test_parse!(fn negatives("1 day -15 minutes", 85_500, 0));
 test_parse!(fn unmatched_negatives("1 day - 15 minutes", 87_300, 0));
 
 test_parse!(fn no_unit("15", 15, 0));
-// freakin IDE highlights wrong if there's certain characters in a string within a macro
-// Heck, it hightlights all the marco arguments wrong.
 test_parse!(fn no_unit_with_noise(".:++++]][][[][15[]][][]:}}}}", 15, 0));
 
-test_invalid!(fn invalid_unit("16 sdfwe"));
-test_invalid!(fn no_value("year"));
-test_invalid!(fn wrong_order("year15"));
-test_invalid!(fn number_too_big("123456789012345678901234567890 seconds"));
-test_invalid!(fn not_enough_units("16 17 seconds"));
+test_invalid!(fn invalid_unit("16 sdfwe", ParseError::UnknownUnitError("sdfwe".to_string())));
+test_invalid!(fn no_value("year", ParseError::NoValueFoundError("year".to_string())));
+test_invalid!(fn wrong_order("year15", ParseError::NoUnitFoundError("15".to_string())));
+
+#[test]
+fn number_too_big() {
+    assert_eq!(
+        Ok(parse("123456789012345678901234567890 seconds")),
+        "123456789012345678901234567890".parse::<BigInt>().map(|int| Err(ParseError::OutOfBoundsError(int)))
+    );
+}
+
+test_invalid!(fn not_enough_units("16 17 seconds", ParseError::NoUnitFoundError("16".to_string())));
