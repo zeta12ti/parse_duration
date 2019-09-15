@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use super::{parse, ParseError};
+use super::parse;
 use num::BigInt;
 use std::time::Duration;
 
@@ -165,16 +165,29 @@ test_parse!(fn unmatched_negatives("1 day - 15 minutes", 87_300, 0));
 test_parse!(fn no_unit("15", 15, 0));
 test_parse!(fn no_unit_with_noise(".:++++]][][[][15[]][][]:}}}}", 15, 0));
 
-test_invalid!(fn invalid_unit("16 sdfwe", ParseError::UnknownUnitError("sdfwe".to_string())));
-test_invalid!(fn no_value("year", ParseError::NoValueFoundError("year".to_string())));
-test_invalid!(fn wrong_order("year15", ParseError::NoUnitFoundError("15".to_string())));
+test_invalid!(fn invalid_int("1e11232345982734592837498234 years", parse::Error::ParseInt("11232345982734592837498234".to_string())));
+test_invalid!(fn invalid_unit("16 sdfwe", parse::Error::UnknownUnit("sdfwe".to_string())));
+test_invalid!(fn no_value("year", parse::Error::NoValueFound("year".to_string())));
+test_invalid!(fn wrong_order("year15", parse::Error::NoUnitFound("15".to_string())));
 
 #[test]
 fn number_too_big() {
     assert_eq!(
         Ok(parse("123456789012345678901234567890 seconds")),
-        "123456789012345678901234567890".parse::<BigInt>().map(|int| Err(ParseError::OutOfBoundsError(int)))
+        "123456789012345678901234567890"
+            .parse::<BigInt>()
+            .map(|int| Err(parse::Error::OutOfBounds(int)))
     );
 }
 
-test_invalid!(fn not_enough_units("16 17 seconds", ParseError::NoUnitFoundError("16".to_string())));
+#[test]
+fn negative_duration() {
+    assert_eq!(
+        Ok(parse("-3 days 71 hours")),
+        "-3600"
+            .parse::<BigInt>()
+            .map(|int| Err(parse::Error::OutOfBounds(int)))
+    );
+}
+
+test_invalid!(fn not_enough_units("16 17 seconds", parse::Error::NoUnitFound("16".to_string())));
