@@ -25,11 +25,19 @@ assert_eq!(
 );
 ```
 
+
 ## Documentation
 Documentation may be found [on docs.rs](https://docs.rs/parse_duration).
 
+
+## Minimum Rust version policy
+This crate's minimum supported rustc version is 1.28.0.
+
+If the minimum rustc version needs to be increased, there will be a new major version. For example, if parse\_duration 2.0.0 requires rustc 1.28.0, then parse\_duration 2.x.y will also only require rustc 1.28.0. Since this crate is fairly simple, there likely won't be any need to increase the minimum version in the foreseeable future.
+
 ## License
 This software is licensed under the MIT License.
+
 
 ## Contributing
 Feel free to file an issue or submit a pull request if there's a bug you want fixed
