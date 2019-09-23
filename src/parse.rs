@@ -326,12 +326,12 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     }
 
                     // boosted_int is now value * nanoseconds
-                    // the absolute value of an `isize` is always between 0 and 2**(width - 1),
-                    // so it always fits in a `usize`.
+                    // x.wrapping_abs() as usize will always give the intended result
+                    // This is because isize::MIN as usize == abs(isize::MIN) (as a usize)
                     if exp < 0 {
-                        boosted_int /= pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int /= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     } else {
-                        boosted_int *= pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int *= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     }
                     duration.nanoseconds += boosted_int;
                 }
@@ -339,14 +339,14 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(int.as_str().to_owned()))?;
 
-                    // TODO: Should probably switch to BigInt for exp too
                     let dec_exp = dec.as_str().len();
 
                     let exp = exp
                         .as_str()
-                        .parse::<isize>()
+                        .parse::<BigInt>()
                         .or_else(|_| Err(Error::ParseInt(exp.as_str().to_owned())))?
-                        - (dec_exp as isize);
+                        - (BigInt::from(dec_exp));
+                    let exp = exp.to_isize().ok_or_else(|| Error::OutOfBounds(exp))?;
 
                     let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(dec.as_str().to_owned()))?;
@@ -370,10 +370,12 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     }
 
                     // boosted_int is now value * nanoseconds (potentially rounded down)
+                    // x.wrapping_abs() as usize will always give the intended result
+                    // This is because isize::MIN as usize == abs(isize::MIN) (as a usize)
                     if exp < 0 {
-                        boosted_int /= pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int /= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     } else {
-                        boosted_int *= pow(BigInt::from(10), exp.abs() as usize);
+                        boosted_int *= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     }
                     duration.nanoseconds += boosted_int;
                 }
