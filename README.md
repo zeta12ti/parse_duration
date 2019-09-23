@@ -15,13 +15,13 @@ use parse_duration::parse;
 use std::time::Duration;
 
 // One hour less than a day
-assert_eq!(parse("1 day -1 hour").unwrap(), Duration::new(82_800, 0));
+assert_eq!(parse("1 day -1 hour"), Ok(Duration::new(82_800, 0)));
 // Using exponents
-assert_eq!(parse("1.26e-1 days").unwrap(), Duration::new(10_886, 400_000_000));
+assert_eq!(parse("1.26e-1 days"), Ok(Duration::new(10_886, 400_000_000)));
 // Extra things will be ignored
 assert_eq!(
-    parse("Duration: 1 hour, 15 minutes and 29 seconds").unwrap(),
-    Duration::new(4529, 0)
+    parse("Duration: 1 hour, 15 minutes and 29 seconds"),
+    Ok(Duration::new(4529, 0))
 );
 ```
 
