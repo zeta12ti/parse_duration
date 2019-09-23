@@ -31,13 +31,13 @@
 //! use std::time::Duration;
 //!
 //! // One hour less than a day
-//! assert_eq!(parse("1 day -1 hour").unwrap(), Duration::new(82_800, 0));
+//! assert_eq!(parse("1 day -1 hour"), Ok(Duration::new(82_800, 0)));
 //! // Using exponents
-//! assert_eq!(parse("1.26e-1 days").unwrap(), Duration::new(10_886, 400_000_000));
+//! assert_eq!(parse("1.26e-1 days"), Ok(Duration::new(10_886, 400_000_000)));
 //! // Extra things will be ignored
 //! assert_eq!(
-//!     parse("Duration: 1 hour, 15 minutes and 29 seconds").unwrap(),
-//!     Duration::new(4529, 0)
+//!     parse("Duration: 1 hour, 15 minutes and 29 seconds"),
+//!     Ok(Duration::new(4529, 0))
 //! );
 //! ```
 //!
@@ -68,21 +68,21 @@
 //! use std::time::Duration;
 //!
 //! assert_eq!(
-//!     parse("15 days 20 seconds 100 milliseconds").unwrap(),
-//!     Duration::new(1_296_020, 100_000_000)
+//!     parse("15 days 20 seconds 100 milliseconds"),
+//!     Ok(Duration::new(1_296_020, 100_000_000))
 //! );
 //! assert_eq!(
-//!     parse("15days20seconds100milliseconds").unwrap(),
-//!     Duration::new(1_296_020, 100_000_000)
+//!     parse("15days20seconds100milliseconds"),
+//!     Ok(Duration::new(1_296_020, 100_000_000))
 //! );
 //!
-//! assert_eq!(parse(".:++++]][][[][15[]][seconds][]:}}}}").unwrap(), Duration::new(15, 0));
+//! assert_eq!(parse(".:++++]][][[][15[]][seconds][]:}}}}"), Ok(Duration::new(15, 0)));
 //!
-//! assert_eq!(parse("14 days seconds").unwrap(), Duration::new(1_209_600, 0));
+//! assert_eq!(parse("14 days seconds"), Ok(Duration::new(1_209_600, 0)));
 //!
-//! assert_eq!(parse(".:++++]][][[][15[]][][]:}}}}").unwrap(), Duration::new(15, 0));
+//! assert_eq!(parse(".:++++]][][[][15[]][][]:}}}}"), Ok(Duration::new(15, 0)));
 //!
-//! assert_eq!(parse("10 seconds 20 seconds").unwrap(), Duration::new(30, 0));
+//! assert_eq!(parse("10 seconds 20 seconds"), Ok(Duration::new(30, 0)));
 //! ```
 //!
 //! # Units
@@ -143,12 +143,12 @@
 //! use parse_duration::parse;
 //! use std::time::Duration;
 //!
-//! assert_eq!(parse("1 day -1 hour").unwrap(), Duration::new(82_800, 0));
+//! assert_eq!(parse("1 day -1 hour"), Ok(Duration::new(82_800, 0)));
 //!
-//! assert_eq!(parse("1.84467e19 seconds").unwrap(), Duration::new(18_446_700_000_000_000_000, 0));
+//! assert_eq!(parse("1.84467e19 seconds"), Ok(Duration::new(18_446_700_000_000_000_000, 0)));
 //! assert_eq!(
-//!     parse("1.84467e28 nanoseconds").unwrap(),
-//!     Duration::new(18_446_700_000_000_000_000, 0)
+//!     parse("1.84467e28 nanoseconds"),
+//!     Ok(Duration::new(18_446_700_000_000_000_000, 0))
 //! );
 //! ```
 
