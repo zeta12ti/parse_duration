@@ -1,4 +1,4 @@
-2.0.0 (2019-09-08)
+2.0.0 (2019-09-22)
 ==================
 - Add minimum Rust version policy.
 - Rewrite error enum to be more idiomatic.
