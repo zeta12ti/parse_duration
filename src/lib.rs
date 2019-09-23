@@ -162,7 +162,7 @@ extern crate num;
 /// See the [module level documentation](index.html) for more.
 mod parse;
 
-pub use parse::{parse, ParseError};
+pub use parse::parse;
 
 #[cfg(test)]
 mod tests;
