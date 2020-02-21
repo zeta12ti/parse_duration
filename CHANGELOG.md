@@ -1,3 +1,7 @@
+2.1.0 (2020-02-21)
+==================
+- Make the `parse` module public, allowing `parse::Error` to be matched on.
+
 2.0.1 (2019-09-23)
 ==================
 - Clean up the crate-level docs.

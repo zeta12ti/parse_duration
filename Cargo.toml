@@ -1,6 +1,6 @@
 [package]
 name = "parse_duration"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["zeta12ti <zeta12ti@protonmail.com>"]
 homepage = "https://github.com/zeta12ti/parse_duration/"
 repository = "https://github.com/zeta12ti/parse_duration/"
