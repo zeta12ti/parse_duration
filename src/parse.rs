@@ -33,11 +33,11 @@ pub enum Error {
     // When I switch exponents to use `BigInt`, this variant should be impossible.
     // Right now it'll return this error with things like "1e123456781234567812345678"
     // where the exponent can't be parsed into an `isize`.
-    /// A string failed to be parsed as an integer.
+    /// An exponent failed to be parsed as an `isize`.
     ParseInt(String),
     /// An unrecognized unit was found.
     UnknownUnit(String),
-    /// A BigInt was too big to be converted into a u64 or was negative.
+    /// A `BigInt` was too big to be converted into a `u64` or was negative.
     OutOfBounds(BigInt),
     /// A value without a unit was found.
     NoUnitFound(String),
@@ -168,6 +168,7 @@ lazy_static! {
 
 /// Convert some unit abbreviations to their full form.
 /// See the [module level documentation](index.html) for more information about which abbreviations are accepted.
+// TODO: return an `enum`.
 fn parse_unit(unit: &str) -> &str {
     let unit_casefold = unit.to_lowercase();
 

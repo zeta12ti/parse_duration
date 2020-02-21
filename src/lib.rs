@@ -151,16 +151,33 @@
 //!     Ok(Duration::new(18_446_700_000_000_000_000, 0))
 //! );
 //! ```
+//!
+//! # Errors
+//!
+//! The error `enum` has different variants for particular sorts of errors.
+//! See [the documentation for the error `enum`](parse/enum.Error.html) for more information.
+//!
+//! ```
+//! use parse_duration::parse;
+//!
+//! let input = "1e100 seconds";
+//!
+//! if let Err(parse::Error::OutOfBounds(_)) = parse(input) {
+//!     println!("The input was too big");
+//! } else {
+//!     panic!("The input wasn't too big");
+//! }
+//! ```
 
 extern crate regex;
 #[macro_use]
 extern crate lazy_static;
 extern crate num;
 
-/// This module containing the parse function and the error struct.
+/// This module contains the parse function and the error `enum`.
 ///
 /// See the [module level documentation](index.html) for more.
-mod parse;
+pub mod parse;
 
 pub use parse::parse;
 
