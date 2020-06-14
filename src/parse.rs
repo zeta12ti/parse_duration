@@ -329,8 +329,12 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     // boosted_int is now value * nanoseconds
                     // x.wrapping_abs() as usize will always give the intended result
                     // This is because isize::MIN as usize == abs(isize::MIN) (as a usize)
-                    if exp < 0 {
+                    if exp < -1000000 { // Prevents pow() from taking too much time
+                        boosted_int = BigInt::from(0);
+                    } else if exp < 0 {
                         boosted_int /= pow(BigInt::from(10), exp.wrapping_abs() as usize);
+                    } else if exp > 1000000 {
+                        return Err(Error::OutOfBounds(exp.into()))
                     } else {
                         boosted_int *= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     }
@@ -373,8 +377,12 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     // boosted_int is now value * nanoseconds (potentially rounded down)
                     // x.wrapping_abs() as usize will always give the intended result
                     // This is because isize::MIN as usize == abs(isize::MIN) (as a usize)
-                    if exp < 0 {
+                    if exp < -1000000 {
+                        boosted_int = BigInt::from(0);
+                    } else if exp < 0 {
                         boosted_int /= pow(BigInt::from(10), exp.wrapping_abs() as usize);
+                    } else if exp > 1000000 {
+                        return Err(Error::OutOfBounds(exp.into()))
                     } else {
                         boosted_int *= pow(BigInt::from(10), exp.wrapping_abs() as usize);
                     }

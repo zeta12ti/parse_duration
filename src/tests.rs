@@ -164,11 +164,13 @@ test_parse!(fn unmatched_negatives("1 day - 15 minutes", 87_300, 0));
 
 test_parse!(fn no_unit("15", 15, 0));
 test_parse!(fn no_unit_with_noise(".:++++]][][[][15[]][][]:}}}}", 15, 0));
+test_parse!(fn large_exponent_negative("1e-100000000s", 0, 0));
 
 test_invalid!(fn invalid_int("1e11232345982734592837498234 years", parse::Error::ParseInt("11232345982734592837498234".to_string())));
 test_invalid!(fn invalid_unit("16 sdfwe", parse::Error::UnknownUnit("sdfwe".to_string())));
 test_invalid!(fn no_value("year", parse::Error::NoValueFound("year".to_string())));
 test_invalid!(fn wrong_order("year15", parse::Error::NoUnitFound("15".to_string())));
+test_invalid!(fn large_exponent_positive("1e100000000s", parse::Error::OutOfBounds(num::BigInt::from(100000000))));
 
 #[test]
 fn number_too_big() {
