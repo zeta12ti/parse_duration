@@ -190,4 +190,24 @@ fn negative_duration() {
     );
 }
 
+#[test]
+fn negative_decimal_duration() {
+    assert_eq!(
+        Ok(parse("-0.5 min")),
+        "-30"
+            .parse::<BigInt>()
+            .map(|int| Err(parse::Error::OutOfBounds(int)))
+    );
+}
+
+#[test]
+fn negative_decimal_and_exp_duration() {
+    assert_eq!(
+        Ok(parse("-0.5e2 min")),
+        "-3000"
+            .parse::<BigInt>()
+            .map(|int| Err(parse::Error::OutOfBounds(int)))
+    );
+}
+
 test_invalid!(fn not_enough_units("16 17 seconds", parse::Error::NoUnitFound("16".to_string())));

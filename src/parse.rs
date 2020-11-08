@@ -150,7 +150,7 @@ lazy_static! {
 lazy_static! {
     static ref DURATION_RE: Regex = Regex::new(
         r"(?x)(?i)
-        (?P<int>-?\d+)              # the integer part
+        (?P<int>(?P<sign>-?)\d+)    # the integer part
         \.?(?:(?P<dec>\d+))?        # an optional decimal part
                                     # note: the previous part will eat any decimals
                                     # if there's no decimal point.
@@ -235,6 +235,7 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
         for capture in DURATION_RE.captures_iter(input) {
             match (
                 capture.name("int"),
+                capture.name("sign"),
                 capture.name("dec"),
                 capture.name("exp"),
                 capture.name("unit"),
@@ -250,7 +251,7 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                         capture.get(0).unwrap().as_str().to_owned(),
                     ))
                 }
-                (Some(int), None, None, Some(unit)) => {
+                (Some(int), _, None, None, Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(int.as_str().to_owned()))?;
 
@@ -268,14 +269,18 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                         s => return Err(Error::UnknownUnit(s.to_owned())),
                     }
                 }
-                (Some(int), Some(dec), None, Some(unit)) => {
+                (Some(int), sign, Some(dec), None, Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(int.as_str().to_owned()))?;
 
                     let exp = dec.as_str().len();
 
-                    let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
+                    let mut dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(dec.as_str().to_owned()))?;
+                    if let "-" = sign.unwrap().as_str() {
+                        dec = -dec;
+                    }
+
 
                     // boosted_int is value * 10^exp * unit
                     let mut boosted_int = int * pow(BigInt::from(10), exp) + dec;
@@ -299,7 +304,7 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     boosted_int /= pow(BigInt::from(10), exp);
                     duration.nanoseconds += boosted_int;
                 }
-                (Some(int), None, Some(exp), Some(unit)) => {
+                (Some(int), _, None, Some(exp), Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(int.as_str().to_owned()))?;
 
@@ -336,7 +341,7 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                     }
                     duration.nanoseconds += boosted_int;
                 }
-                (Some(int), Some(dec), Some(exp), Some(unit)) => {
+                (Some(int), sign, Some(dec), Some(exp), Some(unit)) => {
                     let int = BigInt::parse_bytes(int.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(int.as_str().to_owned()))?;
 
@@ -349,8 +354,11 @@ pub fn parse(input: &str) -> Result<Duration, Error> {
                         - (BigInt::from(dec_exp));
                     let exp = exp.to_isize().ok_or_else(|| Error::OutOfBounds(exp))?;
 
-                    let dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
+                    let mut dec = BigInt::parse_bytes(dec.as_str().as_bytes(), 10)
                         .ok_or_else(|| Error::ParseInt(dec.as_str().to_owned()))?;
+                    if let "-" = sign.unwrap().as_str() {
+                        dec = -dec;
+                    }
 
                     // boosted_int is value * 10^-exp * unit
                     let mut boosted_int = int * pow(BigInt::from(10), dec_exp) + dec;
