@@ -2,6 +2,8 @@
 [![Crates.io](https://img.shields.io/crates/v/parse_duration.svg)](https://crates.io/crates/parse_duration)
 [![Travis](https://img.shields.io/travis/zeta12ti/parse_duration.svg)](https://travis-ci.org/zeta12ti/parse_duration)
 
+***IMPORTANT***: This repository is no longer being updated. Before deciding to use it, check if any of the [issues](https://github.com/zeta12ti/parse_duration/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) are deal breakers. In particular, this crate should not be used with untrusted input (see [this issue](https://github.com/zeta12ti/parse_duration/issues/21)).
+
 This crate provides a function `parse` for parsing strings into durations.
 The parser is based on the standard set by
 [systemd.time](https://www.freedesktop.org/software/systemd/man/systemd.time.html#Parsing%20Time%20Spans),
