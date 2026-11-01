@@ -191,3 +191,7 @@ fn negative_duration() {
 }
 
 test_invalid!(fn not_enough_units("16 17 seconds", parse::Error::NoUnitFound("16".to_string())));
+
+test_parse!(fn negatives_subsecond_ms("1s -500ms", 0, 500_000_000));
+test_parse!(fn negatives_subsecond_borrow("2s -1500ms", 0, 500_000_000));
+test_parse!(fn negatives_subsecond_ns("1s -999999999ns", 0, 1));
