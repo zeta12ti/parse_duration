@@ -121,8 +121,17 @@ impl ProtoDuration {
             + 2_629_746_u32 * self.months
             + 31_556_952_u32 * self.years;
 
-        seconds += &nanoseconds / 1_000_000_000_u32;
-        nanoseconds %= 1_000_000_000_u32;
+        // Normalize so that nanoseconds ends up in [0, 1_000_000_000). Plain
+        // / and % truncate toward zero, leaving a negative remainder when the
+        // sub-second part of the total is negative (e.g. "1s -500ms"), which
+        // rejected inputs whose sum is non-negative.
+        let seconds_in_nanos = &nanoseconds / 1_000_000_000_u32;
+        nanoseconds -= &seconds_in_nanos * 1_000_000_000_u32;
+        if nanoseconds < BigInt::from(0) {
+            seconds -= 1;
+            nanoseconds += 1_000_000_000_u32;
+        }
+        seconds += &seconds_in_nanos;
 
         let seconds =
             <BigInt as ToPrimitive>::to_u64(&seconds).ok_or_else(|| Error::OutOfBounds(seconds))?;
